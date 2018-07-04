@@ -1,0 +1,141 @@
+C51 COMPILER V7.06   FORWARD                                                               09/04/2017 07:52:18 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE FORWARD
+OBJECT MODULE PLACED IN forward.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE forward.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include<reg51.h>
+   2          #include "bst_car.h"
+   3          
+   4          unsigned char pwm_val_left  =0;//变量定义
+   5          unsigned char pwm_val_right =0;
+   6          unsigned char push_val_left =7;// 左电机占空比N/20 //速度调节变量 0-20。。。0最小，20最大
+   7          unsigned char push_val_right=7;// 右电机占空比N/20
+   8          bit Right_PWM_ON=1;                //右电机PWM开关
+   9          bit Left_PWM_ON =1;                        //左电机PWM开关
+  10          
+  11          //前进
+  12           void run(void)
+  13          {
+  14   1          //push_val_left=5;   //速度调节变量 0-20。。。0最小，20最大
+  15   1              //push_val_right=5;
+  16   1              Left_moto_go ;   //左电机往前走
+  17   1              Right_moto_go ;  //右电机往前走
+  18   1      }
+  19          
+  20          void stop()//停止
+  21          {
+  22   1         Right_moto_Stop;
+  23   1         Left_moto_Stop;
+  24   1      }
+  25          
+  26          void back()
+  27          {
+  28   1          Left_moto_back;
+  29   1          Right_moto_back;
+  30   1      }
+  31          
+  32          
+  33          //左转
+  34           void leftrun(void)
+  35          {        
+  36   1           //push_val_left=5;
+  37   1               //push_val_right=5;
+  38   1         Right_PWM_ON=1;
+  39   1          Left_PWM_ON=0;
+  40   1               Right_moto_go ; //右电机往前走
+  41   1           Left_moto_Stop ; 
+  42   1       //左电机停止
+  43   1      }
+  44          
+  45          //右转
+  46          void  rightrun(void)
+  47          { 
+  48   1               //push_val_left=5;
+  49   1               //push_val_right=5;
+  50   1      Left_PWM_ON=1;
+  51   1      Right_PWM_ON=0 ;
+  52   1           Left_moto_go  ;   //左电机往前走
+  53   1               Right_moto_Stop 
+  54   1        //右电机往前走        
+  55   1      }
+C51 COMPILER V7.06   FORWARD                                                               09/04/2017 07:52:18 PAGE 2   
+
+  56          /************************************************************************/
+  57          //                   PWM调制电机转速                                   
+  58          
+  59          //                   左电机调速                                        
+  60          /*调节push_val_left的值改变电机转速,占空比*/
+  61          void pwm_out_left_moto(void)
+  62          {  
+  63   1           if(Left_PWM_ON)    
+  64   1           {
+  65   2                if(pwm_val_left<=push_val_left)
+  66   2                    {
+  67   3                         EN1=1; 
+  68   3                    }
+  69   2                    else 
+  70   2                    {
+  71   3                         EN1=0;
+  72   3                }
+  73   2                if(pwm_val_left>=20)
+  74   2                    pwm_val_left=0;
+  75   2           }
+  76   1           else    
+  77   1           {
+  78   2                EN1=0;   //若未开启PWM则EN1=0 左电机 停止
+  79   2           }
+  80   1      }
+  81          /******************************************************************/
+  82          /*                    右电机调速                                  */  
+  83          void pwm_out_right_moto(void)
+  84          { 
+  85   1          if(Right_PWM_ON)
+  86   1          { 
+  87   2              if(pwm_val_right<=push_val_right)       //20ms内电平信号 111 111 0000 0000 0000 00
+  88   2                  {
+  89   3                      EN2=1;                                                  //占空比6:20
+  90   3              }
+  91   2                  else 
+  92   2                  {
+  93   3                      EN2=0;
+  94   3              }
+  95   2                  if(pwm_val_right>=20)
+  96   2                  pwm_val_right=0;
+  97   2          }
+  98   1          else    
+  99   1          {
+ 100   2              EN2=0;    //若未开启PWM则EN2=0 右电机 停止
+ 101   2          }
+ 102   1      }
+ 103          
+ 104          //TIMER0中断服务子函数产生PWM信号
+ 105          void timer0()interrupt 1 using 2
+ 106          {
+ 107   1           TH0=0XFC;    //1Ms定时
+ 108   1               TL0=0X66;
+ 109   1               pwm_val_left++;
+ 110   1               pwm_val_right++;
+ 111   1               pwm_out_left_moto();
+ 112   1               pwm_out_right_moto();
+ 113   1       }      
+ 114          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V7.06   FORWARD                                                               09/04/2017 07:52:18 PAGE 3   
+
+   CODE SIZE        =    130    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

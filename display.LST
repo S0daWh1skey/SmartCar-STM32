@@ -1,0 +1,129 @@
+C51 COMPILER V7.06   DISPLAY                                                               09/04/2017 07:52:18 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE DISPLAY
+OBJECT MODULE PLACED IN display.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE display.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include "display.h"
+   2          #include "signal.h"
+   3          unsigned char BUF[8]; 
+   4          void WaitForEnable(void)        
+   5          {                                       
+   6   1      DataPort=0xff;          
+   7   1      LCM_RS=0;LCM_RW=1;_nop_();
+   8   1      LCM_EN=1;_nop_();_nop_();
+   9   1      while(DataPort&0x80);   
+  10   1      LCM_EN=0;                               
+  11   1      }                                       
+  12          /*******************************/
+  13          void WriteCommandLCM(uchar CMD,uchar Attribc)
+  14          {                                       
+  15   1      if(Attribc)WaitForEnable();     
+  16   1      LCM_RS=0;LCM_RW=0;_nop_();
+  17   1      DataPort=CMD;_nop_();   
+  18   1      LCM_EN=1;_nop_();_nop_();LCM_EN=0;
+  19   1      }                                       
+  20          /*******************************/
+  21          void WriteDataLCM(uchar dataW)
+  22          {                                       
+  23   1      WaitForEnable();                
+  24   1      LCM_RS=1;LCM_RW=0;_nop_();
+  25   1      DataPort=dataW;_nop_(); 
+  26   1      LCM_EN=1;_nop_();_nop_();LCM_EN=0;
+  27   1      }               
+  28          /***********************************/
+  29          void InitLcd()                          
+  30          {                       
+  31   1      WriteCommandLCM(0x38,1);        
+  32   1      WriteCommandLCM(0x08,1);        
+  33   1      WriteCommandLCM(0x01,1);        
+  34   1      WriteCommandLCM(0x06,1);        
+  35   1      WriteCommandLCM(0x0c,1);
+  36   1      }                       
+  37          /***********************************/
+  38          void DisplayOneChar(uchar X,uchar Y,uchar DData)
+  39          {                                               
+  40   1      Y&=1;                                           
+  41   1      X&=15;                                          
+  42   1      if(Y)X|=0x40;                                   
+  43   1      X|=0x80;                        
+  44   1      WriteCommandLCM(X,0);           
+  45   1      WriteDataLCM(DData);            
+  46   1      }                                               
+  47          /***********************************/
+  48          
+  49          //*********************************************************
+  50          void read_cmp(void)
+  51          {   uchar i;
+  52   1      
+  53   1          AT24C04_Start();                          //起始信号
+  54   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  55   1          AT24C04_SendByte(0x00);                   //0表示命令 
+C51 COMPILER V7.06   DISPLAY                                                               09/04/2017 07:52:18 PAGE 2   
+
+  56   1          AT24C04_SendByte(0x31);                   //发送一次测量角度
+  57   1          AT24C04_Stop();                           //停止信号
+  58   1      
+  59   1              Delay5ms();
+  60   1              Delay5ms();
+  61   1              Delay5ms();
+  62   1              Delay5ms();
+  63   1              Delay5ms();
+  64   1              Delay5ms();
+  65   1              Delay5ms();
+  66   1              Delay5ms();                               //延时，实际应用中可以执行其他程序
+  67   1              Delay5ms();
+  68   1              Delay5ms();
+  69   1              Delay5ms();
+  70   1      
+  71   1      
+  72   1          AT24C04_Start();                          //起始信号
+  73   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  74   1          AT24C04_SendByte(0x00);                   //0表示命令 
+  75   1          AT24C04_SendByte(0x35);                   //发送一次测量温度
+  76   1          AT24C04_Stop();                           //停止信号
+  77   1      
+  78   1          Delay5ms();
+  79   1              Delay5ms();
+  80   1              Delay5ms();
+  81   1              Delay5ms();
+  82   1              Delay5ms();
+  83   1              Delay5ms();                               //延时，实际应用中可以执行其他程序
+  84   1      
+  85   1          AT24C04_Start();                          //起始信号
+  86   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  87   1          AT24C04_SendByte(0x00);                   //发送存储单元地址，从0开始       
+  88   1          AT24C04_Start();                          //起始信号
+  89   1          AT24C04_SendByte(WriteDeviceAddress+1);   //发送设备地址+读信号
+  90   1               for (i=0; i<8; i++)
+  91   1          {
+  92   2              BUF[i] = AT24C04_RecvByte();
+  93   2              if (i == 7)
+  94   2              {
+  95   3                 AT24C04_SendACK(1);                //最后一个数据需要回NOACK
+  96   3              }
+  97   2              else
+  98   2              {
+  99   3                AT24C04_SendACK(0);                //回应ACK
+ 100   3             }
+ 101   2         }
+ 102   1          AT24C04_Stop();                          //停止信号
+ 103   1      
+ 104   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    270    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,46 @@
+C51 COMPILER V7.06   INFRARED                                                              09/04/2017 07:52:18 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE INFRARED
+OBJECT MODULE PLACED IN Infrared.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE Infrared.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include "Infrared.h"
+   2          #include "bst_car.h"
+   3          void Infrared(void)
+   4          {       
+   5   1         
+   6   1                  //有信号为0  没有信号为1
+   7   1              if(Left_2_led==1&&Right_2_led==1)
+   8   1                  run();   //调用前进函数               
+   9   1                      if(Left_2_led==1&&Right_2_led==0)           //右边检测到障碍物
+  10   1                      {
+  11   2                              leftrun();                     //调用小车左转函数
+  12   2                      }                          
+  13   1                      if(Right_2_led==1&&Left_2_led==0)               //左边检测到障碍物
+  14   1                      {         
+  15   2                              rightrun();                //调用小车右转函数
+  16   2                      }
+  17   1                               
+  18   1               
+  19   1      }
+  20             
+  21          
+  22          
+  23          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     28    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

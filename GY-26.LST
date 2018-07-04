@@ -1,0 +1,117 @@
+C51 COMPILER V7.06   GY_26                                                                 09/04/2017 07:52:18 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE GY_26
+OBJECT MODULE PLACED IN GY-26.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE GY-26.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include "GY-26.h"
+   2          void cal_on(void)
+   3          {                                             //校准
+   4   1          AT24C04_Start();                          //起始信号
+   5   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+   6   1          AT24C04_SendByte(0x00);                   //0表示命令 
+   7   1          AT24C04_SendByte(0xC0);                   //发送校准命令
+   8   1          AT24C04_Stop();                           //发送停止信号
+   9   1      }
+  10          //*********************************************************
+  11          void cal_off(void)                            //关闭校准
+  12          {
+  13   1          AT24C04_Start();                          //起始信号
+  14   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  15   1          AT24C04_SendByte(0x00);                   //0表示命令 
+  16   1          AT24C04_SendByte(0xC1);                   //发送停止校准命令
+  17   1          AT24C04_Stop();                           //发送停止信号
+  18   1      }
+  19          //*********************************************************
+  20          void recovery_factory(void)                   //恢复出厂设置
+  21          {
+  22   1          AT24C04_Start();                          //起始信号
+  23   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  24   1          AT24C04_SendByte(0x00);                   //0表示命令 
+  25   1          AT24C04_SendByte(0xA0);                   //发送数据0xA0
+  26   1          AT24C04_Stop();                           //发送停止信号
+  27   1      
+  28   1          AT24C04_Start();                          //起始信号
+  29   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  30   1          AT24C04_SendByte(0x00);                   //0表示命令 
+  31   1          AT24C04_SendByte(0xAA);                   //发送数据0xAA
+  32   1          AT24C04_Stop();                           //发送停止信号
+  33   1      
+  34   1          AT24C04_Start();                          //起始信号
+  35   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  36   1          AT24C04_SendByte(0x00);                   //0表示命令 
+  37   1          AT24C04_SendByte(0xA5);                   //发送数据0xA5
+  38   1          AT24C04_Stop();                           //发送停止信号
+  39   1      
+  40   1              AT24C04_Start();                          //起始信号
+  41   1          AT24C04_SendByte(WriteDeviceAddress);     //发送设备地址+写信号
+  42   1          AT24C04_SendByte(0x00);                   //0表示命令 
+  43   1          AT24C04_SendByte(0xC5);                   //发送0xC5,恢复出厂命令
+  44   1          AT24C04_Stop();                           //发送停止信号
+  45   1      
+  46   1      }
+  47          //*********************************************************
+  48          void IIC_ADDR_Change(void)                   //iic地址更改
+  49          {
+  50   1          AT24C04_Start();                         //起始信号
+  51   1          AT24C04_SendByte(WriteDeviceAddress);    //发送设备地址+写信号
+  52   1          AT24C04_SendByte(0x00);                  //0表示命令 
+  53   1          AT24C04_SendByte(0xA0);                  //发送数据0xA0
+  54   1          AT24C04_Stop();                          //发送停止信号
+  55   1      
+C51 COMPILER V7.06   GY_26                                                                 09/04/2017 07:52:18 PAGE 2   
+
+  56   1          AT24C04_Start();                        //起始信号
+  57   1          AT24C04_SendByte(WriteDeviceAddress);   //发送设备地址+写信号
+  58   1          AT24C04_SendByte(0x00);                 //0表示命令 
+  59   1          AT24C04_SendByte(0xAA);                 //发送数据0xAA
+  60   1          AT24C04_Stop();                         //发送停止信号
+  61   1      
+  62   1          AT24C04_Start();                        //起始信号
+  63   1          AT24C04_SendByte(WriteDeviceAddress);   //发送设备地址+写信号
+  64   1          AT24C04_SendByte(0x00);                 //0表示命令 
+  65   1          AT24C04_SendByte(0xA5);                 //发送数据0xA5
+  66   1          AT24C04_Stop();                         //发送停止信号
+  67   1      
+  68   1              AT24C04_Start();                        //起始信号
+  69   1          AT24C04_SendByte(WriteDeviceAddress);   //发送设备地址+写信号
+  70   1          AT24C04_SendByte(0x00);                 //0表示命令 
+  71   1          AT24C04_SendByte(0xE8);                 //新的IIC地址E0-FE中偶数(参考PDF文档)
+  72   1          AT24C04_Stop();                         //发送停止信号
+  73   1      
+  74   1      }
+  75          //*********************************************************
+  76          void CMP_OFFS(void)                         //磁偏角
+  77          {
+  78   1          AT24C04_Start();                        //起始信号
+  79   1          AT24C04_SendByte(WriteDeviceAddress);   //发送设备地址+写信号
+  80   1          AT24C04_SendByte(0x03);                 //0表示命令 
+  81   1          AT24C04_SendByte(0x00);                 //磁偏角高8位，写入0
+  82   1          AT24C04_Stop();                         //发送停止信号
+  83   1      
+  84   1          AT24C04_Start();                        //起始信号
+  85   1          AT24C04_SendByte(WriteDeviceAddress);   //发送设备地址+写信号
+  86   1          AT24C04_SendByte(0x04);                 //0表示命令 
+  87   1          AT24C04_SendByte(0x64);                 //磁偏角低8位，写入100（实际是10.0度）
+  88   1          AT24C04_Stop();                         //发送停止信号
+  89   1      }
+  90          //*********************************************************
+  91          
+  92          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    252    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

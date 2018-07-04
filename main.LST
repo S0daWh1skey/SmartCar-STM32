@@ -1,0 +1,408 @@
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          // GY-26 IIC测试程序
+   2          // 使用单片机STC89C51 
+   3          // 晶振：11.0592M
+   4          // 显示：LCD1602
+   5          // 编译环境 Keil uVision2
+   6          // 程序中把模块当24c04进行通信
+   7          // temp_data
+   8          #include  <REG51.H>     
+   9          #include  <math.h>    //Keil library  
+  10          #include  <stdio.h>   //Keil library    
+  11          #include  <INTRINS.H>
+  12          #include  "signal.h"
+  13          #include  "delay.h"
+  14          #include  "display.h"
+  15          #include "GY-26.h"
+  16          #include "bst_car.h"
+  17          #include "Infrared.h"
+  18          #include  "ultrasonic.h"
+  19          #include "beep.h"       
+  20          #define   uchar unsigned char
+  21          #define   uint unsigned int     
+  22          #define   DataPort P0   //LCD1602数据端口
+  23          #define ReadDviceAddress     0xE1     //器件在IIC总线中地址+1
+  24          extern BYTE BUF[8];                         //数据缓存区
+  25          BYTE code res[6] _at_ 0x23;
+  26          sbit    LCM_RS=P1^0;   //LCD1602命令端口                
+  27          sbit    LCM_RW=P1^1;   //LCD1602命令端口                
+  28          sbit    LCM_EN=P2^5;   //LCD1602命令端口         
+  29          /*
+  30          sbit    KEY_1 =P3^4;   //按键1
+  31          sbit    KEY_2 =P3^5;   //按键2
+  32          sbit    KEY_3 =P3^6;   //按键3
+  33          sbit    KEY_4 =P3^7;   //按键4          
+  34          */
+  35          uchar templ,temph,cnt;
+  36          uchar ge,shi,bai,qian;
+  37          uint  dis_data,dis_data1;
+  38          
+  39          void delay(unsigned int k);
+  40          void InitLcd();
+  41          void WriteDataLCM(uchar dataW);
+  42          void WriteCommandLCM(uchar CMD,uchar Attribc);
+  43          void DisplayOneChar(uchar X,uchar Y,uchar DData);
+  44          uchar HEX_TO_ASCII(uchar HEX_data);
+  45          void conversion(uint temp_data);
+  46          
+  47          //------------------------------------
+  48          
+  49          void Delay5us();
+  50          void Delay5ms();
+  51          void AT24C04_Start();
+  52          void AT24C04_Stop();
+  53          void AT24C04_SendACK(bit ack);
+  54          bit  AT24C04_RecvACK();
+  55          void AT24C04_SendByte(BYTE dat);
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 2   
+
+  56          BYTE AT24C04_RecvByte();
+  57          void AT24C04_ReadPage();
+  58          void AT24C04_WritePage();
+  59          void read_cmp(void);
+  60          //-----------------------------------
+  61          void cal_on();
+  62          void cal_off();
+  63          void recovery_factory();
+  64          void CMP_OFFS();
+  65          void IIC_ADDR_Change();
+  66          void delay_10ms();
+  67          
+  68          
+  69          //*********************************************************
+  70          uchar HEX_TO_ASCII(uchar HEX_data)
+  71          {uchar ASCII_data;
+  72   1              switch(HEX_data){       
+  73   2                 case 0x00:ASCII_data=0x30;break;
+  74   2                 case 0x01:ASCII_data=0x31;break;
+  75   2             case 0x02:ASCII_data=0x32;break;
+  76   2             case 0x03:ASCII_data=0x33;break;
+  77   2                 case 0x04:ASCII_data=0x34;break;
+  78   2                 case 0x05:ASCII_data=0x35;break;
+  79   2             case 0x06:ASCII_data=0x36;break;
+  80   2                 case 0x07:ASCII_data=0x37;break;
+  81   2                 case 0x08:ASCII_data=0x38;break;
+  82   2                 case 0x09:ASCII_data=0x39;break;
+  83   2                 case 0x0a:ASCII_data=0x41;break;
+  84   2                 case 0x0b:ASCII_data=0x42;break;
+  85   2                 case 0x0c:ASCII_data=0x43;break;
+  86   2             case 0x0d:ASCII_data=0x44;break;
+  87   2                 case 0x0e:ASCII_data=0x45;break;
+  88   2                 case 0x0f:ASCII_data=0x46;break;
+  89   2          } 
+  90   1          return(ASCII_data);  
+  91   1      }
+  92          //*********************************************************
+  93          void conversion(uint temp_data)  
+  94          {   
+  95   1          uchar ge_data,shi_data,bai_data ,qian_data;
+  96   1              qian_data=temp_data/1000 ;
+  97   1          temp_data=temp_data%1000;   //取余运算
+  98   1          bai_data=temp_data/100 ;
+  99   1          temp_data=temp_data%100;   //取余运算
+ 100   1          shi_data=temp_data/10 ;
+ 101   1          temp_data=temp_data%10;   //取余运算
+ 102   1          ge_data=temp_data;
+ 103   1          qian= qian_data;
+ 104   1          bai = bai_data;
+ 105   1          shi = shi_data;
+ 106   1          ge  = ge_data ;     
+ 107   1      //      a=temp_data;
+ 108   1      }
+ 109          
+ 110          //*********************************************************
+ 111          void main()
+ 112          {
+ 113   1      //      uint temp_data;
+ 114   1        unsigned int i;
+ 115   1        unsigned long s;
+ 116   1         delay(500);                  
+ 117   1         InitLcd();
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 3   
+
+ 118   1              //EA=0;
+ 119   1              cnt=0;
+ 120   1      //      unsigned int valA;
+ 121   1              TMOD=0X01;
+ 122   1          TH0= 0XFC;  //1ms定时
+ 123   1          TL0= 0X66;
+ 124   1          TR0= 1;
+ 125   1          ET0= 1;
+ 126   1              EA = 1;     //开总中断
+ 127   1      
+ 128   1      
+ 129   1        while(1)            //循环
+ 130   1        { 
+ 131   2                      
+ 132   2              //delay(5000);
+ 133   2          read_cmp();   //读出数据
+ 134   2      //---------显示角度
+ 135   2          dis_data=0;
+ 136   2          dis_data=BUF[1];
+ 137   2          dis_data<<=8;
+ 138   2          dis_data|=BUF[2];
+ 139   2      
+ 140   2          conversion(dis_data);
+ 141   2              ge=HEX_TO_ASCII(ge);
+ 142   2              shi=HEX_TO_ASCII(shi);
+ 143   2              bai=HEX_TO_ASCII(bai);
+ 144   2              qian=HEX_TO_ASCII(qian);
+ 145   2      
+ 146   2          DisplayOneChar(0,0,qian); 
+ 147   2          DisplayOneChar(1,0,bai); 
+ 148   2          DisplayOneChar(2,0,shi); 
+ 149   2          DisplayOneChar(3,0,'.'); 
+ 150   2              DisplayOneChar(4,0,ge); 
+ 151   2              
+ 152   2              //Infrared();
+ 153   2          s = csbdistance();
+ 154   2              if(s<40)
+ 155   2              {
+ 156   3                      beep_start();
+ 157   3              delay(60);
+ 158   3              beep_Stop();
+ 159   3              stop();
+ 160   3              delay(500);
+ 161   3              back();
+ 162   3              delay(400);
+ 163   3              rightrun();
+ 164   3              delay(500);
+ 165   3          }
+ 166   2              else{
+ 167   3              if(Left_2_led==1&&Right_2_led==1)
+ 168   3              {
+ 169   4                      /*if(dis_data>=800&&dis_data<=1200)    
+ 170   4                              run();
+ 171   4                      */
+ 172   4                      if(dis_data>1800)
+ 173   4                         leftrun();
+ 174   4                      if(dis_data<1800)
+ 175   4                         rightrun();
+ 176   4              }
+ 177   3              if(Left_2_led==1&&Right_2_led==0){
+ 178   4      //        stop();
+ 179   4      //        delay(100);
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 4   
+
+ 180   4      //        back();
+ 181   4      //        delay(100);
+ 182   4                      leftrun();
+ 183   4                      delay(500);
+ 184   4      }
+ 185   3              if(Right_2_led==1&&Left_2_led==0){
+ 186   4      //        stop();
+ 187   4      //        delay(100);
+ 188   4      //        back();
+ 189   4      //        delay(100);
+ 190   4                  rightrun();
+ 191   4                      delay(1000);
+ 192   4      }
+ 193   3          if(Right_2_led==0&&Left_2_led==0){
+ 194   4              stop();
+ 195   4              delay(500);
+ 196   4              back();
+ 197   4              delay(500);
+ 198   4                  rightrun();
+ 199   4                      delay(1000);
+ 200   4      }
+ 201   3      }
+ 202   2      //---------显示温度
+ 203   2          dis_data=0;
+ 204   2          dis_data=BUF[5];
+ 205   2          dis_data<<=8;
+ 206   2          dis_data|=BUF[6];
+ 207   2          
+ 208   2              if(dis_data>4095){           //如果bit-12为1，即符号位为负
+ 209   3              DisplayOneChar(0,1,'-');     //显示负号
+ 210   3              dis_data&=0xefff;            //清符号位
+ 211   3              }
+ 212   2          else DisplayOneChar(0,1,' ');//如果bit-12为0,空格,清空
+ 213   2      
+ 214   2          conversion(dis_data);
+ 215   2              ge=HEX_TO_ASCII(ge);
+ 216   2              shi=HEX_TO_ASCII(shi);
+ 217   2              bai=HEX_TO_ASCII(bai);
+ 218   2              qian=HEX_TO_ASCII(qian);
+ 219   2      
+ 220   2          DisplayOneChar(1,1,qian); 
+ 221   2          DisplayOneChar(2,1,bai); 
+ 222   2          DisplayOneChar(3,1,shi); 
+ 223   2          DisplayOneChar(4,1,'.'); 
+ 224   2              DisplayOneChar(5,1,ge); 
+ 225   2              DisplayOneChar(6,1,0XDF);    //温度单位
+ 226   2              DisplayOneChar(7,1,'C'); //温度单位
+ 227   2      
+ 228   2      //-------显示磁偏量
+ 229   2              dis_data1=0;
+ 230   2          dis_data1=BUF[3];
+ 231   2          dis_data1<<=8;
+ 232   2          dis_data1|=BUF[4];
+ 233   2      
+ 234   2          conversion(dis_data1);
+ 235   2              ge=HEX_TO_ASCII(ge);
+ 236   2              shi=HEX_TO_ASCII(shi);
+ 237   2              bai=HEX_TO_ASCII(bai);
+ 238   2              qian=HEX_TO_ASCII(qian);
+ 239   2      
+ 240   2          DisplayOneChar(7,0,qian); 
+ 241   2          DisplayOneChar(8,0,bai); 
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 5   
+
+ 242   2          DisplayOneChar(9,0,shi); 
+ 243   2          DisplayOneChar(10,0,'.'); 
+ 244   2              DisplayOneChar(11,0,ge); 
+ 245   2      
+ 246   2      //-------显示校准等级
+ 247   2          conversion(BUF[7]);
+ 248   2              ge=HEX_TO_ASCII(ge);
+ 249   2              shi=HEX_TO_ASCII(shi);
+ 250   2              bai=HEX_TO_ASCII(bai);
+ 251   2              qian=HEX_TO_ASCII(qian);
+ 252   2          DisplayOneChar(10,1,bai); 
+ 253   2          DisplayOneChar(11,1,shi); 
+ 254   2              DisplayOneChar(12,1,ge); 
+ 255   2      /*      
+ 256   2      //----------按键检测
+ 257   2      
+ 258   2          if(KEY_1==0){
+ 259   2                  delay_10ms();
+ 260   2                  if(KEY_1==0){
+ 261   2                  cal_on(); 
+ 262   2                  while(KEY_1==0)delay_10ms();
+ 263   2                  }
+ 264   2          }     
+ 265   2          if(KEY_2==0){
+ 266   2                delay_10ms();
+ 267   2                if(KEY_2==0){
+ 268   2                cal_off();  
+ 269   2            while(KEY_2==0)delay_10ms();
+ 270   2                }
+ 271   2              }
+ 272   2          if(KEY_3==0){
+ 273   2                delay_10ms();
+ 274   2                if(KEY_3==0){
+ 275   2                recovery_factory();  
+ 276   2            while(KEY_3==0)delay_10ms();
+ 277   2                }
+ 278   2              }
+ 279   2          if(KEY_4==0){
+ 280   2           delay_10ms();
+ 281   2               if(KEY_4==0){
+ 282   2              // CMP_OFFS();  
+ 283   2               IIC_ADDR_Change();
+ 284   2           while(KEY_4==0)delay_10ms();
+ 285   2           }
+ 286   2          }
+ 287   2      */
+ 288   2          for (i=0;i<4000;i++);               
+ 289   2        }
+ 290   1              
+ 291   1      } 
+ 292          
+ 293          
+ 294          /*******************************/
+ 295          void delay(unsigned int k);
+ 296          /*******************************/
+ 297          void WaitForEnable(void);                                       
+ 298          /*******************************/
+ 299          void WriteCommandLCM(uchar CMD,uchar Attribc);                                  
+ 300          /*******************************/
+ 301          void WriteDataLCM(uchar dataW); 
+ 302          /***********************************/
+ 303          void InitLcd();                 
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 6   
+
+ 304          /***********************************/
+ 305          void DisplayOneChar(uchar X,uchar Y,uchar DData);                                               
+ 306          /***********************************/
+ 307          //*********************************************************
+ 308          void read_cmp(void);
+ 309          //--------------------------------------------------
+ 310          
+ 311          /**************************************
+ 312          延时5微秒(STC90C52RC@12M)
+ 313          不同的工作环境,需要调整此函数，注意时钟过快时需要修改
+ 314          当改用1T的MCU时,请调整此延时函数
+ 315          **************************************/
+ 316          void Delay5us();
+ 317          
+ 318          /**************************************
+ 319          延时5毫秒(STC90C52RC@12M)
+ 320          不同的工作环境,需要调整此函数
+ 321          当改用1T的MCU时,请调整此延时函数
+ 322          **************************************/
+ 323          void Delay5ms();
+ 324          
+ 325          /**************************************
+ 326          起始信号
+ 327          **************************************/
+ 328          void AT24C04_Start();
+ 329          
+ 330          /**************************************
+ 331          停止信号
+ 332          **************************************/
+ 333          void AT24C04_Stop();
+ 334          
+ 335          /**************************************
+ 336          发送应答信号
+ 337          入口参数:ack (0:ACK 1:NAK)
+ 338          **************************************/
+ 339          void AT24C04_SendACK(bit ack);
+ 340          
+ 341          /**************************************
+ 342          接收应答信号
+ 343          **************************************/
+ 344          bit AT24C04_RecvACK();
+ 345          
+ 346          /**************************************
+ 347          向IIC总线发送一个字节数据
+ 348          **************************************/
+ 349          void AT24C04_SendByte(BYTE dat);
+ 350          
+ 351          /**************************************
+ 352          从IIC总线接收一个字节数据
+ 353          **************************************/
+ 354          BYTE AT24C04_RecvByte();
+ 355          
+ 356          //*********************************************************
+ 357          void cal_on(void);
+ 358          
+ 359          //*********************************************************
+ 360          void cal_off(void) ;                           //关闭校准
+ 361          
+ 362          //*********************************************************
+ 363          void recovery_factory(void);                   //恢复出厂设置
+ 364          
+ 365          //*********************************************************
+C51 COMPILER V7.06   MAIN                                                                  09/04/2017 07:52:17 PAGE 7   
+
+ 366          void IIC_ADDR_Change(void);                   //iic地址更改
+ 367          
+ 368          //*********************************************************
+ 369          void CMP_OFFS(void);                         //磁偏角
+ 370          
+ 371          //*********************************************************
+ 372          void Delay_10ms(void);
+ 373          //参考宏晶网站24c04通信程序
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    802    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11       9
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

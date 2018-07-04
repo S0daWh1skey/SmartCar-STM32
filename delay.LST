@@ -1,0 +1,64 @@
+C51 COMPILER V7.06   DELAY                                                                 09/04/2017 07:52:18 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN delay.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE delay.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include  "delay.h"   //Keil library 
+   2          void delay(unsigned int k)      
+   3          {                                               
+   4   1      unsigned int i,j;                               
+   5   1      for(i=0;i<k;i++)
+   6   1      {                       
+   7   2      for(j=0;j<121;j++)                      
+   8   2      {;}}                                            
+   9   1      }
+  10          /**************************************
+  11          延时5微秒(STC90C52RC@12M)
+  12          不同的工作环境,需要调整此函数，注意时钟过快时需要修改
+  13          当改用1T的MCU时,请调整此延时函数
+  14          **************************************/
+  15          void Delay5us()
+  16          {
+  17   1          _nop_();_nop_();_nop_();_nop_();
+  18   1          _nop_();_nop_();_nop_();_nop_();
+  19   1              _nop_();_nop_();_nop_();_nop_();
+  20   1          _nop_();_nop_();_nop_();_nop_();
+  21   1              _nop_();_nop_();_nop_();_nop_();
+  22   1          _nop_();_nop_();_nop_();_nop_();  
+  23   1      }
+  24          
+  25          /**************************************
+  26          延时5毫秒(STC90C52RC@12M)
+  27          不同的工作环境,需要调整此函数
+  28          当改用1T的MCU时,请调整此延时函数
+  29          **************************************/
+  30          void Delay5ms()
+  31          {
+  32   1          unsigned short n = 560;
+  33   1      
+  34   1          while (n--);
+  35   1      }
+  36          
+  37          void Delay_10ms(void)
+  38          {
+  39   1          int n=560;
+  40   1          while (n--);
+  41   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     87    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

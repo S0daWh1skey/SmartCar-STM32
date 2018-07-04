@@ -1,0 +1,66 @@
+C51 COMPILER V7.06   ULTRASONIC                                                            09/04/2017 07:52:19 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE ULTRASONIC
+OBJECT MODULE PLACED IN ultrasonic.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE ultrasonic.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include "ultrasonic.h"
+   2          #include "delay.h"
+   3          unsigned int time=0;
+   4          unsigned long S=0;
+   5          unsigned int valA;
+   6          void StarModle(void)
+   7          {
+   8   1      TRIG=1;
+   9   1      delay(1);
+  10   1      TRIG=0;
+  11   1      }
+  12          void distance(void)
+  13          {
+  14   1      time=TH1*256+TL1;
+  15   1      TH1=0;
+  16   1      TL1=0; 
+  17   1      S=(time*0.17)/10+10;
+  18   1      }
+  19          
+  20          void Timer_Count(void)
+  21          {
+  22   1      while(!ECHO);
+  23   1      TR1=1;
+  24   1      while(ECHO);
+  25   1      TR1=0;
+  26   1      distance();
+  27   1      
+  28   1      }
+  29          unsigned long csbdistance(void)
+  30          {
+  31   1      ECHO=1;
+  32   1      StarModle();
+  33   1      for(valA=7510;valA>0;valA--)
+  34   1      {
+  35   2      if(ECHO==1)
+  36   2      {
+  37   3      Timer_Count();
+  38   3      return S;
+  39   3      }
+  40   2      }
+  41   1      }
+  42          
+  43          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    142    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

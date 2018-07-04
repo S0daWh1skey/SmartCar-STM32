@@ -1,0 +1,121 @@
+C51 COMPILER V7.06   SIGNAL                                                                09/04/2017 07:52:18 PAGE 1   
+
+
+C51 COMPILER V7.06, COMPILATION OF MODULE SIGNAL
+OBJECT MODULE PLACED IN Signal.OBJ
+COMPILER INVOKED BY: E:\Keil\C51\BIN\C51.EXE Signal.c BROWSE DEBUG OBJECTEXTEND
+
+stmt level    source
+
+   1          #include "signal.h"
+   2          
+   3          /**************************************
+   4          起始信号
+   5          **************************************/
+   6          void AT24C04_Start()
+   7          {
+   8   1          SDA = 1;                    //拉高数据线
+   9   1          SCL = 1;                    //拉高时钟线
+  10   1          Delay5us();                 //延时
+  11   1          SDA = 0;                    //产生下降沿
+  12   1          Delay5us();                 //延时
+  13   1          SCL = 0;                    //拉低时钟线
+  14   1      }
+  15          
+  16          /**************************************
+  17          停止信号
+  18          **************************************/
+  19          void AT24C04_Stop()
+  20          {
+  21   1          SDA = 0;                    //拉低数据线
+  22   1          SCL = 1;                    //拉高时钟线
+  23   1          Delay5us();                 //延时
+  24   1          SDA = 1;                    //产生上升沿
+  25   1          Delay5us();                 //延时
+  26   1      }
+  27          
+  28          /**************************************
+  29          发送应答信号
+  30          入口参数:ack (0:ACK 1:NAK)
+  31          **************************************/
+  32          void AT24C04_SendACK(bit ack)
+  33          {
+  34   1          SDA = ack;                  //写应答信号
+  35   1          SCL = 1;                    //拉高时钟线
+  36   1          Delay5us();                 //延时
+  37   1          SCL = 0;                    //拉低时钟线
+  38   1          Delay5us();                 //延时
+  39   1      }
+  40          
+  41          /**************************************
+  42          接收应答信号
+  43          **************************************/
+  44          bit AT24C04_RecvACK()
+  45          {
+  46   1          SCL = 1;                    //拉高时钟线
+  47   1          Delay5us();                 //延时
+  48   1          CY = SDA;                   //读应答信号
+  49   1          SCL = 0;                    //拉低时钟线
+  50   1          Delay5us();                 //延时
+  51   1      
+  52   1          return CY;
+  53   1      }
+  54          
+  55          /**************************************
+C51 COMPILER V7.06   SIGNAL                                                                09/04/2017 07:52:18 PAGE 2   
+
+  56          向IIC总线发送一个字节数据
+  57          **************************************/
+  58          void AT24C04_SendByte(BYTE dat)
+  59          {
+  60   1          BYTE i;
+  61   1      
+  62   1          for (i=0; i<8; i++)         //8位计数器
+  63   1          {
+  64   2              dat <<= 1;              //移出数据的最高位
+  65   2              SDA = CY;               //送数据口
+  66   2              SCL = 1;                //拉高时钟线
+  67   2              Delay5us();             //延时
+  68   2              SCL = 0;                //拉低时钟线
+  69   2              Delay5us();             //延时
+  70   2          }
+  71   1          AT24C04_RecvACK();
+  72   1      }
+  73          
+  74          /**************************************
+  75          从IIC总线接收一个字节数据
+  76          **************************************/
+  77          BYTE AT24C04_RecvByte()
+  78          {
+  79   1          BYTE i;
+  80   1          BYTE dat = 0;
+  81   1      
+  82   1          SDA = 1;                    //使能内部上拉,准备读取数据,
+  83   1          for (i=0; i<8; i++)         //8位计数器
+  84   1          {
+  85   2              dat <<= 1;
+  86   2              SCL = 1;                //拉高时钟线
+  87   2              Delay5us();             //延时
+  88   2              dat |= SDA;             //读数据               
+  89   2              SCL = 0;                //拉低时钟线
+  90   2              Delay5us();             //延时
+  91   2          }
+  92   1      
+  93   1          return dat;
+  94   1      }
+  95          
+  96          //*********************************************************
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    130    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
